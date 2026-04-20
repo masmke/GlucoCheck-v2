@@ -8,6 +8,18 @@
 
 > Levanta todo el proyecto con un solo comando (entorno virtual, dependencias, pipeline y backend).
 
+### Con Docker (recomendado)
+
+```bash
+docker-compose up --build
+```
+
+- Backend: http://localhost:8000  
+- Frontend: http://localhost:3000  
+- Documentación API: http://localhost:8000/docs
+
+> El pipeline de datos (descarga, preprocesamiento y entrenamiento del modelo) se ejecuta automáticamente dentro del contenedor si los artefactos no existen. Los artefactos se persisten en `data/processed/` mediante un volumen Docker.
+
 ### Mac / Linux
 
 ```bash

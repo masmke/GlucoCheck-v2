@@ -1,0 +1,36 @@
+# Entornos virtuales
+.venv/
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+
+# Datos crudos (se descargan en el pipeline)
+data/raw/*.csv
+
+# Control de versiones
+.git/
+.gitignore
+
+# IDE y sistema
+.vscode/
+.idea/
+*.DS_Store
+Thumbs.db
+
+# Docker
+docker-compose.override.yml
+
+# Documentación generada
+docs/*.txt
+
+# Scripts de arranque local (no necesarios en imagen)
+scripts/
+Makefile
