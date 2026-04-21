@@ -2,6 +2,5 @@ venv/
 __pycache__/
 *.pyc
 data/raw/*.csv
-data/processed/*.pkl
 data/processed/*.npy
-data/processed/*.txt
+# model.pkl, scaler.pkl y threshold.txt se incluyen en el repo para despliegue directo sin pipeline
