@@ -318,6 +318,29 @@
 
     .field-error.visible { display: block; }
 
+    .range-bar {
+      position: relative;
+      height: 6px;
+      background: #e5e7eb;
+      border-radius: 100px;
+      margin-top: 5px;
+      overflow: hidden;
+      display: none;
+    }
+    .range-bar.visible { display: block; }
+    .range-fill {
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      border-radius: 100px;
+      transition: width .2s, background .2s;
+      min-width: 6px;
+    }
+    .range-normal  { background: #10b981; }
+    .range-warning { background: #f59e0b; }
+    .range-danger  { background: #ef4444; }
+
     /* ══════════════ SUBMIT BUTTON ══════════════ */
     .submit-wrapper {
       margin-top: 28px;
@@ -835,6 +858,7 @@
             </label>
             <input type="number" id="pregnancies" name="pregnancies" placeholder="Ej: 2" min="0" max="17" step="1" />
             <span class="field-range">Rango: 0 – 17</span>
+            <div class="range-bar" id="bar-pregnancies"><div class="range-fill" id="fill-pregnancies"></div></div>
             <span class="field-error" id="err-pregnancies">Valor inválido (0–17)</span>
           </div>
 
@@ -845,6 +869,7 @@
             </label>
             <input type="number" id="glucose" name="glucose" placeholder="Ej: 120" min="44" max="199" step="1" />
             <span class="field-range">Rango: 44 – 199 mg/dL</span>
+            <div class="range-bar" id="bar-glucose"><div class="range-fill" id="fill-glucose"></div></div>
             <span class="field-error" id="err-glucose">Valor inválido (44–199)</span>
           </div>
 
@@ -855,6 +880,7 @@
             </label>
             <input type="number" id="blood_pressure" name="blood_pressure" placeholder="Ej: 70" min="24" max="122" step="1" />
             <span class="field-range">Rango: 24 – 122 mmHg</span>
+            <div class="range-bar" id="bar-blood_pressure"><div class="range-fill" id="fill-blood_pressure"></div></div>
             <span class="field-error" id="err-blood_pressure">Valor inválido (24–122)</span>
           </div>
 
@@ -865,6 +891,7 @@
             </label>
             <input type="number" id="skin_thickness" name="skin_thickness" placeholder="Ej: 25" min="7" max="99" step="1" />
             <span class="field-range">Rango: 7 – 99 mm</span>
+            <div class="range-bar" id="bar-skin_thickness"><div class="range-fill" id="fill-skin_thickness"></div></div>
             <span class="field-error" id="err-skin_thickness">Valor inválido (7–99)</span>
           </div>
 
@@ -875,6 +902,7 @@
             </label>
             <input type="number" id="insulin" name="insulin" placeholder="Ej: 80" min="0" max="846" step="1" />
             <span class="field-range">Rango: 0 – 846 μU/mL (0 = dato no disponible)</span>
+            <div class="range-bar" id="bar-insulin"><div class="range-fill" id="fill-insulin"></div></div>
             <span class="field-error" id="err-insulin">Valor inválido (0–846)</span>
           </div>
 
@@ -885,6 +913,7 @@
             </label>
             <input type="number" id="bmi" name="bmi" placeholder="Ej: 28.5" min="18" max="67" step="0.1" />
             <span class="field-range">Rango: 18.0 – 67.0</span>
+            <div class="range-bar" id="bar-bmi"><div class="range-fill" id="fill-bmi"></div></div>
             <span class="field-error" id="err-bmi">Valor inválido (18–67)</span>
           </div>
 
@@ -895,6 +924,7 @@
             </label>
             <input type="number" id="diabetes_pedigree" name="diabetes_pedigree" placeholder="Ej: 0.45" min="0.08" max="2.42" step="0.01" />
             <span class="field-range">Rango: 0.08 – 2.42</span>
+            <div class="range-bar" id="bar-diabetes_pedigree"><div class="range-fill" id="fill-diabetes_pedigree"></div></div>
             <span class="field-error" id="err-diabetes_pedigree">Valor inválido (0.08–2.42)</span>
           </div>
 
@@ -905,6 +935,7 @@
             </label>
             <input type="number" id="age" name="age" placeholder="Ej: 35" min="21" max="81" step="1" />
             <span class="field-range">Rango: 21 – 81 años</span>
+            <div class="range-bar" id="bar-age"><div class="range-fill" id="fill-age"></div></div>
             <span class="field-error" id="err-age">Valor inválido (21–81)</span>
           </div>
 
@@ -1120,11 +1151,38 @@
   }
 
   /* ── Validación ── */
+  function updateRangeBar(f, val) {
+    const bar  = document.getElementById('bar-'  + f.id);
+    const fill = document.getElementById('fill-' + f.id);
+    if (!bar || !fill) return;
+
+    if (isNaN(val)) {
+      bar.classList.remove('visible');
+      return;
+    }
+
+    const norm = (val - f.min) / (f.max - f.min);   // 0..1
+    const pct  = Math.min(Math.max(norm, 0), 1) * 100;
+
+    fill.className = 'range-fill';
+    if (pct <= 25 || (pct > 75 && pct <= 90)) {
+      fill.classList.add('range-warning');
+    } else if (pct > 90) {
+      fill.classList.add('range-danger');
+    } else {
+      fill.classList.add('range-normal');
+    }
+    fill.style.width = pct + '%';
+    bar.classList.add('visible');
+  }
+
   function validateField(f) {
     const input = document.getElementById(f.id);
     const errEl = document.getElementById('err-' + f.id);
     const val   = parseFloat(input.value);
     const empty = input.value === '';
+
+    updateRangeBar(f, empty ? NaN : val);
 
     if (!empty && (isNaN(val) || val < f.min || val > f.max)) {
       input.classList.add('error');
