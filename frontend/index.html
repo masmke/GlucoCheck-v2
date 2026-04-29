@@ -769,6 +769,30 @@
 
     footer span { color: rgba(255,255,255,.8); font-weight: 600; }
 
+    /* ══════════════ SERVER STATUS INDICATOR ══════════════ */
+    .server-status {
+      position: absolute;
+      top: 12px;
+      right: 16px;
+      display: none;
+      align-items: center;
+      gap: 5px;
+      z-index: 10;
+      font-size: 9pt;
+      font-weight: 500;
+      color: rgba(255,255,255,.85);
+    }
+
+    .server-status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .server-status-dot.green  { background: #10b981; box-shadow: 0 0 4px rgba(16,185,129,.7); }
+    .server-status-dot.yellow { background: #f59e0b; box-shadow: 0 0 4px rgba(245,158,11,.7); }
+
     /* ══════════════ RESPONSIVE ══════════════ */
     @media (max-width: 600px) {
       .form-grid { grid-template-columns: 1fr; }
@@ -822,6 +846,10 @@
 
 <!-- ── HEADER ── -->
 <header>
+  <div class="server-status" id="server-status">
+    <div class="server-status-dot" id="server-status-dot"></div>
+    <span id="server-status-text"></span>
+  </div>
   <div class="header-inner">
     <div class="header-badge"><span>🩺</span> Herramienta Analítica Académica</div>
     <h1>GlucoCheck</h1>
@@ -1061,6 +1089,51 @@
 </footer>
 
 <script>
+  /* ── Ping automático al backend ── */
+  (function () {
+    var HEALTH_URL  = 'https://glucocheck-production.up.railway.app/health';
+    var MAX_RETRIES = 3;
+    var retries     = 0;
+
+    function setStatus(color, text) {
+      var el  = document.getElementById('server-status');
+      var dot = document.getElementById('server-status-dot');
+      var txt = document.getElementById('server-status-text');
+      dot.className    = 'server-status-dot ' + color;
+      txt.textContent  = text;
+      el.style.display = 'flex';
+    }
+
+    function ping() {
+      var ctrl  = new AbortController();
+      var timer = setTimeout(function () { ctrl.abort(); }, 5000);
+
+      fetch(HEALTH_URL, { signal: ctrl.signal })
+        .then(function (res) {
+          clearTimeout(timer);
+          if (res.ok) {
+            setStatus('green', 'Servidor activo');
+          } else {
+            throw new Error('not-ok');
+          }
+        })
+        .catch(function () {
+          clearTimeout(timer);
+          retries++;
+          if (retries < MAX_RETRIES) {
+            setTimeout(ping, 10000);
+          } else {
+            setStatus('yellow', 'Servidor iniciando, espera unos segundos...');
+          }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      setStatus('yellow', 'Conectando...');
+      ping();
+    });
+  }());
+
   const FIELDS = [
     { id: 'pregnancies',      label: 'Embarazos',             min: 0,    max: 17,   importance: 0.22, unit: '' },
     { id: 'glucose',          label: 'Glucosa',               min: 44,   max: 199,  importance: 0.47, unit: 'mg/dL' },
